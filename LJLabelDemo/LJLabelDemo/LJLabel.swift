@@ -17,9 +17,26 @@ enum LJLabelVerticalTextAlignment {
 
 class LJLabel: UILabel {
 
+    //MARK: property
     open var insets = UIEdgeInsets.zero
     open var verticalTextAligment: LJLabelVerticalTextAlignment = .top
     
+    //MARK: helpful method
+    func getLabelTextSizeWith(_ constraint: CGSize) -> CGSize {
+        let context = NSStringDrawingContext()
+        if let text = self.text {
+            let labelTextRect = (text as NSString).boundingRect(with: constraint,
+                                                                      options: .usesLineFragmentOrigin,
+                                                                      attributes: [NSFontAttributeName : self.font],
+                                                                      context: context).size
+            return CGSize(width: ceil(labelTextRect.width),
+                          height: ceil(labelTextRect.height))
+        }
+       
+        return CGSize.zero
+        
+    }
+    //MARK: getter and setter
     @IBInspectable open var topInset: CGFloat {
         set {
             insets.top = newValue
@@ -56,6 +73,7 @@ class LJLabel: UILabel {
         }
     }
 
+    //MARK: init method
     convenience public init(insets: UIEdgeInsets) {
         self.init()
         self.insets = insets
@@ -66,6 +84,7 @@ class LJLabel: UILabel {
         self.insets = insets
     }
     
+    //MARK: draw method
     override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
         return super.textRect(forBounds: UIEdgeInsetsInsetRect(bounds, insets), limitedToNumberOfLines: numberOfLines)
 //        return UIEdgeInsetsInsetRect(rect, insets)
