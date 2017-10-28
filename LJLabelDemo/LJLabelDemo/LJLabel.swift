@@ -27,7 +27,7 @@ class LJLabel: UILabel {
         if let text = self.text {
             let labelTextRect = (text as NSString).boundingRect(with: constraint,
                                                                       options: .usesLineFragmentOrigin,
-                                                                      attributes: [NSFontAttributeName : self.font],
+                                                                      attributes: [NSAttributedStringKey.font : self.font],
                                                                       context: context).size
             return CGSize(width: ceil(labelTextRect.width),
                           height: ceil(labelTextRect.height))
