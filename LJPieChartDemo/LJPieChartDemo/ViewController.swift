@@ -24,29 +24,15 @@ class ViewController: UIViewController {
         chart.heightAnchor.constraint(equalToConstant: 300).isActive = true
         
        
-        let dict = [ [kLJPieChartNumberKey: (CGFloat)(10.0),
-                      kLJPieChartTitleKey: "A",
-                      kLJPieChartColorKey: UIColor.red],
-                     
-                     [kLJPieChartNumberKey: (CGFloat)(6.0),
-                      kLJPieChartTitleKey: "B",
-                      kLJPieChartColorKey: UIColor.green],
-                     
-                     [kLJPieChartNumberKey: (CGFloat)(2.0),
-                      kLJPieChartTitleKey: "C",
-                      kLJPieChartColorKey: UIColor.yellow],
-
-                     [kLJPieChartNumberKey: (CGFloat)(3.0),
-                      kLJPieChartTitleKey: "D",
-                      kLJPieChartColorKey: UIColor.orange],
-
-                     [kLJPieChartNumberKey: (CGFloat)(5.0),
-                      kLJPieChartTitleKey: "E",
-                      kLJPieChartColorKey: UIColor.purple]
-                  ]
+        let ele1 = LJPieChartElement(color: .red, number: 100, title: "AAA")
+        let ele2 = LJPieChartElement(color: .cyan, number: 5, title: "BBB")
+        let ele3 = LJPieChartElement(color: .brown, number: 250, title: "CCC")
+        let ele4 = LJPieChartElement(color: .orange, number: 70.0, title: "DDD")
+        let ele5 = LJPieChartElement(color: .purple, number: 300, title: "EEE")
         
-        chart.setPieChartType(.arc, dataSource: dict, radius: 80)
+        let dataSource = [ele1, ele2, ele3, ele4, ele5]
         
+        chart.setPieChartType(.arc, dataSource: dataSource, radius: 80)
     }
 
     override func didReceiveMemoryWarning() {

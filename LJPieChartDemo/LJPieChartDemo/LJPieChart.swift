@@ -8,16 +8,22 @@
 
 import UIKit
 
-
-let kLJPieChartTitleKey = "kLJPieChartTitleKey"
-let kLJPieChartNumberKey = "kLJPieChartNumberKey"
-let kLJPieChartColorKey = "kkLJPieChartColorKey"
-
 enum LJPieChartType {
     case arc
     case round
 }
 
+
+struct LJPieChartElement {
+    /// the color of a element in pie chart
+    var color: UIColor
+    
+    /// the value of a segment in pie chart – will be used to automatically calculate a ratio
+    var number: CGFloat
+    
+    /// the title use be displayed in message line
+    var title: String
+}
 
 class LJPieChart: UIView {
     //MARK: constant value
@@ -38,7 +44,7 @@ class LJPieChart: UIView {
     private var pieChartElementRoundWidth: CGFloat!
     
     /// pie chart's datasource
-    private var pieChartDataSource: [[String: Any]]!
+    private var pieChartDataSource: [LJPieChartElement]!
     
     //MARK: public method
     
@@ -48,9 +54,13 @@ class LJPieChart: UIView {
     ///   - type: pie chart's type;
     ///   - dataSource: data that use offered key to draw pie chart
     ///   - radius: pie chart's radius
-    func setPieChartType(_ type: LJPieChartType, dataSource: [[String: Any]], radius: CGFloat) {
+    func setPieChartType(_ type: LJPieChartType, dataSource: [LJPieChartElement], radius: CGFloat) {
         pieChartElementRoundWidth = type == .arc ? 0 : kpieChartElementRoundWidth
-        pieChartDataSource = dataSource
+        
+        pieChartDataSource = dataSource.sorted { (item1, item2) -> Bool in
+            return item1.number > item2.number
+        }
+        
         pieChartRadius = radius
         
         setNeedsDisplay()
@@ -67,17 +77,11 @@ class LJPieChart: UIView {
         
         
         for (idx, item) in pieChartDataSource.enumerated() {
-            let value = item[kLJPieChartNumberKey] as? CGFloat
+            let endAngle = startAngle + getCanShowLineMessageValue(item.number) * total
             
-            if let numberValue = value {
-                
-                let endAngle = startAngle + getCanShowLineMessageValue(numberValue) * total
-                
-                drawArcWithContext(ctx!, point: center, start: startAngle, end: endAngle, idx: idx)
-                
-                startAngle = endAngle
-                
-            }
+            drawArcWithContext(ctx!, point: center, start: startAngle, end: endAngle, idx: idx)
+            
+            startAngle = endAngle
         }
         
         addCenterCircle()
@@ -106,11 +110,7 @@ class LJPieChart: UIView {
                             end: CGFloat,
                             idx: Int)  {
         
-        let color = pieChartDataSource[idx][kLJPieChartColorKey] as? UIColor
-
-        if let fillColor = color {
-            ctx.setFillColor(fillColor.cgColor)
-        }
+        ctx.setFillColor(pieChartDataSource[idx].color.cgColor)
         
         ctx.move(to: point)
         
@@ -137,7 +137,7 @@ class LJPieChart: UIView {
         
         let kLineMessageStrFont = UIFont.systemFont(ofSize: 11)
         let kLineMessageStrTextColor = UIColor.gray
-        let color = pieChartDataSource[idx][kLJPieChartColorKey] as? UIColor
+        let color = pieChartDataSource[idx].color
         var kLineMinimumWidth: CGFloat = 60.0
         
         let smallCircleCenterX = position.x
@@ -155,13 +155,9 @@ class LJPieChart: UIView {
         var textStartX: CGFloat!
         var textStartY: CGFloat!
         
-        var numberStr: NSString = ""
-        var msg: NSString = ""
-        if let number: CGFloat = pieChartDataSource[idx][kLJPieChartNumberKey] as? CGFloat,
-            let text: String = pieChartDataSource[idx][kLJPieChartTitleKey] as? String {
-            numberStr = "\(number)" as NSString
-            msg = text as NSString
-        }
+        let numberStr: NSString = "\(pieChartDataSource[idx].number)" as NSString
+        let msg: NSString = pieChartDataSource[idx].title as NSString
+       
         let numberStrSize = numberStr.size(withAttributes: [NSAttributedStringKey.font: kLineMessageStrFont])
         let msgSize = msg.size(withAttributes: [NSAttributedStringKey.font: kLineMessageStrFont])
         
@@ -212,7 +208,7 @@ class LJPieChart: UIView {
                                                 startAngle: 0,
                                                 endAngle: .pi * 2,
                                                 clockwise: true)
-        color?.set()
+        color.set()
         smallCirclePath.fill()
         smallCirclePath.stroke()
         
@@ -222,7 +218,7 @@ class LJPieChart: UIView {
         ctx.addLine(to: CGPoint(x: lineStartPointX, y: lineStartPointY))
         ctx.addLine(to: CGPoint(x: lineEndPointX, y: lineEndPointY))
         ctx.setLineWidth(1)
-        ctx.setFillColor((color?.cgColor)!)
+        ctx.setFillColor(color.cgColor)
         ctx.strokePath()
         
  
@@ -251,10 +247,7 @@ class LJPieChart: UIView {
     func getTotalFromDataSource() -> CGFloat {
         var total: CGFloat = 0
         for item in pieChartDataSource {
-            let value = item[kLJPieChartNumberKey] as? CGFloat
-            if let numberValue = value {
-                total += numberValue
-            }
+            total += item.number
         }
         return total
     }
