@@ -40,8 +40,8 @@ class LJPieChart: UIView {
     /// pie chart's radius
     private var pieChartRadius: CGFloat!
     
-    /// when type is round, round's width
-    private var pieChartElementRoundWidth: CGFloat!
+    /// when type is round, center circle's radius(equal to pie chart's radius minus roundWidth)
+    private var pieChartElementRoundCenterRadius: CGFloat!
     
     /// pie chart's datasource
     private var pieChartDataSource: [LJPieChartElement]!
@@ -54,8 +54,9 @@ class LJPieChart: UIView {
     ///   - type: pie chart's type;
     ///   - dataSource: data that use offered key to draw pie chart
     ///   - radius: pie chart's radius
-    func setPieChartType(_ type: LJPieChartType, dataSource: [LJPieChartElement], radius: CGFloat) {
-        pieChartElementRoundWidth = type == .arc ? 0 : kpieChartElementRoundWidth
+    ///   - roundWidth:  when type is round, round's width
+    func setPieChartType(_ type: LJPieChartType, dataSource: [LJPieChartElement], radius: CGFloat, roundWidth: CGFloat) {
+        pieChartElementRoundCenterRadius = type == .arc ? 0 : radius - roundWidth
         
         pieChartDataSource = dataSource.sorted { (item1, item2) -> Bool in
             return item1.number > item2.number
@@ -93,7 +94,7 @@ class LJPieChart: UIView {
                              y: frame.size.height / 2.0)
         
         let path = UIBezierPath.init(arcCenter: center,
-                                     radius: pieChartElementRoundWidth,
+                                     radius: pieChartElementRoundCenterRadius,
                                      startAngle: 0.0,
                                      endAngle: CGFloat(Double.pi * 2),
                                      clockwise: true)
