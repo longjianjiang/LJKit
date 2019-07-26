@@ -9,35 +9,35 @@
 import UIKit
 
 
-enum LJLabelVerticalTextAlignment {
+public enum LJLabelVerticalTextAlignment {
     case center
     case top
     case bottom
 }
 
-class LJLabel: UILabel {
+public class LJLabel: UILabel {
 
     //MARK: property
-    open var insets = UIEdgeInsets.zero
-    open var verticalTextAligment: LJLabelVerticalTextAlignment = .top
+    private var insets: UIEdgeInsets
+    public var verticalTextAligment: LJLabelVerticalTextAlignment = .top
     
     //MARK: helpful method
-    func getLabelTextSizeWith(_ constraint: CGSize) -> CGSize {
+    public func getLabelTextSizeWith(_ constraint: CGSize) -> CGSize {
         let context = NSStringDrawingContext()
         if let text = self.text {
             let labelTextRect = (text as NSString).boundingRect(with: constraint,
                                                                       options: .usesLineFragmentOrigin,
-                                                                      attributes: [NSAttributedStringKey.font : self.font],
+                                                                      attributes: [NSAttributedString.Key.font : self.font ?? UIFont.systemFont(ofSize: UIFont.systemFontSize)],
                                                                       context: context).size
             return CGSize(width: ceil(labelTextRect.width),
                           height: ceil(labelTextRect.height))
         }
-       
-        return CGSize.zero
         
+        return CGSize.zero
     }
+
     //MARK: getter and setter
-    @IBInspectable open var topInset: CGFloat {
+    @IBInspectable public var topInset: CGFloat {
         set {
             insets.top = newValue
         }
@@ -46,7 +46,7 @@ class LJLabel: UILabel {
         }
     }
     
-    @IBInspectable open var leftInset: CGFloat {
+    @IBInspectable public var leftInset: CGFloat {
         set {
             insets.left = newValue
         }
@@ -55,7 +55,7 @@ class LJLabel: UILabel {
         }
     }
     
-    @IBInspectable open var rightInset: CGFloat {
+    @IBInspectable public var rightInset: CGFloat {
         set {
             insets.right = newValue
         }
@@ -64,7 +64,7 @@ class LJLabel: UILabel {
         }
     }
 
-    @IBInspectable open var bottomInset: CGFloat {
+    @IBInspectable public var bottomInset: CGFloat {
         set {
             insets.bottom = newValue
         }
@@ -74,45 +74,57 @@ class LJLabel: UILabel {
     }
 
     //MARK: init method
-    convenience public init(insets: UIEdgeInsets) {
-        self.init()
+    public init(insets: UIEdgeInsets = .zero) {
         self.insets = insets
+
+        super.init(frame: .zero)
     }
-    
-    convenience init(frame: CGRect, insets: UIEdgeInsets) {
-        self.init(frame: frame)
-        self.insets = insets
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
-    
+
     //MARK: draw method
-    override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
-        return super.textRect(forBounds: UIEdgeInsetsInsetRect(bounds, insets), limitedToNumberOfLines: numberOfLines)
-//        return UIEdgeInsetsInsetRect(rect, insets)
-//
-//        switch verticalTextAligment {
-//        case .top:
-//            insetsRect.origin.y = bounds.origin.y + insets.top
-//        case .bottom:
-//            insetsRect.origin.y = bounds.origin.y + insets.top + bounds.size.height - insetsRect.size.height
-//        default:
-//            insetsRect.origin.y = bounds.origin.y + insets.top + (bounds.size.height - insetsRect.size.height) / 2.0
-//        }
-//        
-//        return insetsRect
-        
+    private func getUpdatedRect(_ rect: CGRect) -> CGRect {
+        let insetsRect = rect.inset(by: insets)
+        return CGRect(x: insetsRect.minX, y: insets.top, width: rect.width+insets.left+insets.right, height: rect.height+insets.top+insets.bottom)
+    }
+
+    override public func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
+        if insets.top < 0 || insets.right < 0 || insets.bottom < 0 || insets.left < 0 {
+            return super.textRect(forBounds: bounds, limitedToNumberOfLines: numberOfLines)
+        }
+
+        return super.textRect(forBounds: bounds.inset(by: insets), limitedToNumberOfLines: numberOfLines)
     }
     
-    override func drawText(in rect: CGRect) {
+    override public func drawText(in rect: CGRect) {
         var insetsRect = self.textRect(forBounds: rect, limitedToNumberOfLines: numberOfLines)
+
+        let updatedRect = CGRect(x: insetsRect.minX, y: insets.top, width: rect.width+insets.left+insets.right, height: rect.height+insets.top+insets.bottom)
+        print("xxxxx")
+        print(rect)
+        print(insetsRect)
+        print(insetsRect.maxY)
+        print(updatedRect)
         
-        switch verticalTextAligment {
-        case .top:
-            insetsRect.origin.y += 0
-        case .bottom:
-            insetsRect.origin.y += rect.size.height - insetsRect.size.height
-        default:
-            insetsRect.origin.y += (rect.size.height - insetsRect.size.height) / 2.0
+        if rect.height > insetsRect.height+insets.top+insets.bottom {
+            let margin = (rect.size.height - insetsRect.size.height) - insets.top - insets.bottom
+            switch verticalTextAligment {
+            case .top:
+                insetsRect.origin.y += 0
+            case .bottom:
+                insetsRect.origin.y += margin
+            case .center:
+                insetsRect.origin.y += margin / 2.0
+            }
+        }
+
+        if insetsRect.height < rect.height {
+            super.drawText(in: rect)
+            return
         }
         super.drawText(in: insetsRect)
     }
+
 }
