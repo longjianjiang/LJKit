@@ -8,7 +8,6 @@
 
 import UIKit
 
-
 public enum LJLabelVerticalTextAlignment {
     case center
     case top
@@ -100,13 +99,6 @@ public class LJLabel: UILabel {
     
     override public func drawText(in rect: CGRect) {
         var insetsRect = self.textRect(forBounds: rect, limitedToNumberOfLines: numberOfLines)
-
-        let updatedRect = CGRect(x: insetsRect.minX, y: insets.top, width: rect.width+insets.left+insets.right, height: rect.height+insets.top+insets.bottom)
-        print("xxxxx")
-        print(rect)
-        print(insetsRect)
-        print(insetsRect.maxY)
-        print(updatedRect)
         
         if rect.height > insetsRect.height+insets.top+insets.bottom {
             let margin = (rect.size.height - insetsRect.size.height) - insets.top - insets.bottom
@@ -120,10 +112,14 @@ public class LJLabel: UILabel {
             }
         }
 
-        if insetsRect.height < rect.height {
+        // if use autolayout, then set vertical inset, we just ignore inset,
+        // if not content will not be displayed completely.
+        if insetsRect.minY == -0 || insetsRect.minY < insets.top {
+            print("no more space to display")
             super.drawText(in: rect)
             return
         }
+        
         super.drawText(in: insetsRect)
     }
 
